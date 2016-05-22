@@ -2,32 +2,32 @@
 #include "resources.h"
 
 //Icons
-IDI_ICON256	ICON	DISCARDABLE		"icons\\snake256.ico"
-IDI_ICON48	ICON	DISCARDABLE		"icons\\snake48.ico"
-IDI_ICON32	ICON	DISCARDABLE		"icons\\snake32.ico"
-IDI_ICON16	ICON	DISCARDABLE		"icons\\snake16.ico"
+IDI_ICON256   ICON    DISCARDABLE        "icons\\snake256.ico"
+IDI_ICON48    ICON    DISCARDABLE        "icons\\snake48.ico"
+IDI_ICON32    ICON    DISCARDABLE        "icons\\snake32.ico"
+IDI_ICON16    ICON    DISCARDABLE        "icons\\snake16.ico"
 
 //Menu
-IDM_MENU	MENU DISCARDABLE
+IDM_MENU MENU DISCARDABLE
 BEGIN
-	POPUP "&File"
-	BEGIN
-		MENUITEM "&New Game\tF2",		IDM_FILE_NEW
-		MENUITEM "&Preferences\tF5",	IDM_FILE_PREFERENCES
-		MENUITEM SEPARATOR
-		MENUITEM "E&xit",				IDM_FILE_EXIT
-	END
-	
-	MENUITEM "&About",					IDM_ABOUT
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New Game\tF2",       IDM_FILE_NEW
+        MENUITEM "&Preferences\tF5",    IDM_FILE_PREFERENCES
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",               IDM_FILE_EXIT
+    END
+    
+    MENUITEM "&About",                  IDM_ABOUT
 END
 
 //Keyboard Accelerator
-IDK_ACCELERATORS	ACCELERATORS	DISCARDABLE
+IDK_ACCELERATORS    ACCELERATORS    DISCARDABLE
 BEGIN
-	VK_F1,	IDM_ABOUT,				VIRTKEY
-	VK_F2,	IDM_FILE_NEW,			VIRTKEY
-	VK_F5,	IDM_FILE_PREFERENCES,	VIRTKEY
-	"^N",	IDM_FILE_NEW,			ASCII
+    VK_F1,    IDM_ABOUT,              VIRTKEY
+    VK_F2,    IDM_FILE_NEW,           VIRTKEY
+    VK_F5,    IDM_FILE_PREFERENCES,   VIRTKEY
+    "^N",     IDM_FILE_NEW,           ASCII
 END
 
 //About Dialog Box
@@ -35,29 +35,29 @@ IDD_ABOUTBOX DIALOG DISCARDABLE 120, 40, 240, 240
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP
 FONT 10, "System"
 BEGIN
-	ICON			IDI_ICON32, IDC_STATIC, 8, 8
-	
-	LTEXT			"Snake", IDC_STATIC, 32, 8, 100, 8
-	LTEXT			"Free / Open Source", IDC_STATIC, 32, 16, 100, 8
-	
-	LTEXT			"Programmer: André Vicente Milack", IDC_STATIC, 108, 8, 120, 8
-	LTEXT			"email: andrevicente.m@gmail.com", IDC_STATIC, 108, 16, 120, 8
-	
-	LTEXT			"Use the arrows or WASD keys to move the head of the snake, the rest of its body will follow the head. Each food the snake gets increases its length. Hitting the borders or the snake body ends the game, except in the Pass Through Walls Mode, in which the snake will appear in the opposite side when tresspassing the border. Hold on as long as you can, you'll have a little reward if you make it good enough.", IDC_STATIC, 8, 40, 224, 200
-	
-	LTEXT			"Keyboard Commands:", IDC_STATIC, 8, 112, 224, 200
-	
-	LTEXT			"Move Right:\t\tRight\tD", IDC_STATIC, 8, 128, 224, 200
-	LTEXT			"Move Up:\t\tUp\tW", IDC_STATIC, 8, 136, 224, 200
-	LTEXT			"Move Left:\t\tLeft\tA", IDC_STATIC, 8, 144, 224, 200
-	LTEXT			"Move Down:\t\tDown\tS", IDC_STATIC, 8, 152, 224, 200
-	
-	LTEXT			"Pause:\t\t\tP\tSpace\tPause Break", IDC_STATIC, 8, 168, 224, 200
-	LTEXT			"About:\t\t\tF1", IDC_STATIC, 8, 176, 224, 200
-	LTEXT			"New Game:\t\tF2\tCtrl + N", IDC_STATIC, 8, 184, 224, 200
-	LTEXT			"Preferences:\t\tF5", IDC_STATIC, 8, 192, 224, 200
-	
-	DEFPUSHBUTTON	"OK", IDOK, 88, 216, 64, 16
+    ICON            IDI_ICON32, IDC_STATIC, 8, 8
+    
+    LTEXT           "Snake", IDC_STATIC, 32, 8, 100, 8
+    LTEXT           "Free / Open Source", IDC_STATIC, 32, 16, 100, 8
+    
+    LTEXT           "Programmer: André Vicente Milack", IDC_STATIC, 108, 8, 120, 8
+    LTEXT           "email: andrevicente.m@gmail.com", IDC_STATIC, 108, 16, 120, 8
+    
+    LTEXT           "Use the arrows or WASD keys to move the head of the snake, the rest of its body will follow the head. Each food the snake gets increases its length. Hitting the borders or the snake body ends the game, except in the Pass Through Walls Mode, in which the snake will appear in the opposite side when tresspassing the border. Hold on as long as you can, you'll have a little reward if you make it good enough.", IDC_STATIC, 8, 40, 224, 200
+    
+    LTEXT           "Keyboard Commands:", IDC_STATIC, 8, 112, 224, 200
+    
+    LTEXT           "Move Right:\t\tRight\tD", IDC_STATIC, 8, 128, 224, 200
+    LTEXT           "Move Up:\t\tUp\tW", IDC_STATIC, 8, 136, 224, 200
+    LTEXT           "Move Left:\t\tLeft\tA", IDC_STATIC, 8, 144, 224, 200
+    LTEXT           "Move Down:\t\tDown\tS", IDC_STATIC, 8, 152, 224, 200
+    
+    LTEXT           "Pause:\t\t\tP\tSpace\tPause Break", IDC_STATIC, 8, 168, 224, 200
+    LTEXT           "About:\t\t\tF1", IDC_STATIC, 8, 176, 224, 200
+    LTEXT           "New Game:\t\tF2\tCtrl + N", IDC_STATIC, 8, 184, 224, 200
+    LTEXT           "Preferences:\t\tF5", IDC_STATIC, 8, 192, 224, 200
+    
+    DEFPUSHBUTTON   "OK", IDOK, 88, 216, 64, 16
 END
 
 //Preferences Dialog Box
@@ -78,31 +78,31 @@ END
 //Background color
 
 IDD_PREFERENCES DIALOG DISCARDABLE 120, 40, 216, 144
-STYLE 		DS_MODALFRAME | WS_CAPTION  | WS_SYSMENU | DS_CENTER | WS_POPUP
-FONT 		10, "System"
-CAPTION 	"Preferences"
+STYLE         DS_MODALFRAME | WS_CAPTION  | WS_SYSMENU | DS_CENTER | WS_POPUP
+FONT          10, "System"
+CAPTION       "Preferences"
 BEGIN
-	GROUPBOX 		"Game Parameters", IDC_STATIC, 8, 8, 200, 48
-	
-	LTEXT 			"Field Width", IDC_STATIC, 16, 24, 48, 8
-	EDITTEXT 		IDC_FIELD_WIDTH, 64, 22, 24, 12
-	
-	LTEXT 			"Field Height", IDC_STATIC, 104, 24, 48, 8
-	EDITTEXT 		IDC_FIELD_HEIGHT, 152, 22, 24, 12
-	
-	LTEXT 			"Snake Speed", IDC_STATIC, 16, 40, 48, 8
-	EDITTEXT 		IDC_SPEED, 64, 38, 24, 12
-	
-	AUTOCHECKBOX	"Pass Through Walls Mode", IDC_PASS_THROUGH_WALLS, 104, 38, 96, 12
-	
-	GROUPBOX 		"Appearance", IDC_STATIC, 8, 64, 200, 48
-	
-	LTEXT 			"Field Color", IDC_STATIC, 16, 80, 48, 8
-	PUSHBUTTON 		IDC_STATIC, 64, 78, 12, 12
-	
-	LTEXT 			"Food Color", IDC_STATIC, 104, 80, 48, 8
-	PUSHBUTTON 		IDC_STATIC, 152, 78, 12, 12
-	
-	DEFPUSHBUTTON	"OK", IDOK, 42, 120, 64, 16
-	PUSHBUTTON		"Cancel", IDCANCEL, 110, 120, 64, 16
+    GROUPBOX         "Game Parameters", IDC_STATIC, 8, 8, 200, 48
+    
+    LTEXT            "Field Width", IDC_STATIC, 16, 24, 48, 8
+    EDITTEXT         IDC_FIELD_WIDTH, 64, 22, 24, 12
+    
+    LTEXT            "Field Height", IDC_STATIC, 104, 24, 48, 8
+    EDITTEXT         IDC_FIELD_HEIGHT, 152, 22, 24, 12
+    
+    LTEXT            "Snake Speed", IDC_STATIC, 16, 40, 48, 8
+    EDITTEXT         IDC_SPEED, 64, 38, 24, 12
+    
+    AUTOCHECKBOX     "Pass Through Walls Mode", IDC_PASS_THROUGH_WALLS, 104, 38, 96, 12
+    
+    GROUPBOX         "Appearance", IDC_STATIC, 8, 64, 200, 48
+    
+    LTEXT            "Field Color", IDC_STATIC, 16, 80, 48, 8
+    PUSHBUTTON       IDC_STATIC, 64, 78, 12, 12
+    
+    LTEXT            "Food Color", IDC_STATIC, 104, 80, 48, 8
+    PUSHBUTTON       IDC_STATIC, 152, 78, 12, 12
+    
+    DEFPUSHBUTTON    "OK", IDOK, 42, 120, 64, 16
+    PUSHBUTTON       "Cancel", IDCANCEL, 110, 120, 64, 16
 END
