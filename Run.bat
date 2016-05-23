@@ -1,4 +1,4 @@
-windres resources.rc -o resources.o
+windres src\resources.rc -o obj\resources.o
 IF ERRORLEVEL 1 (pause) ELSE (
-	gcc main.c resources.o -l gdi32 -mwindows -oSnake.exe
-	IF ERRORLEVEL 1 (pause) ELSE (start Snake.exe))
+	gcc src\main.c obj\resources.o -l gdi32 -mwindows -o bin\Snake.exe
+	IF ERRORLEVEL 1 (pause) ELSE (start bin\Snake.exe))
