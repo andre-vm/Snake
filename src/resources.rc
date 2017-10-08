@@ -31,33 +31,31 @@ BEGIN
 END
 
 //About Dialog Box
-IDD_ABOUTBOX DIALOG DISCARDABLE 120, 40, 240, 240
+IDD_ABOUTBOX DIALOG DISCARDABLE 120, 40, 240, 220
 STYLE DS_MODALFRAME | DS_CENTER | WS_POPUP
 FONT 10, "System"
 BEGIN
-    ICON            IDI_ICON32, IDC_STATIC, 8, 8
+    ICON            IDI_ICON32, IDC_STATIC, 8, 12
     
     LTEXT           "Snake", IDC_STATIC, 32, 8, 100, 8
-    LTEXT           "Free / Open Source", IDC_STATIC, 32, 16, 100, 8
+    LTEXT           "Author: André Vicente Milack", IDC_STATIC, 32, 16, 120, 8
+    LTEXT           "github.com/Milack27/Snake", IDC_STATIC, 32, 24, 224, 8
     
-    LTEXT           "Programmer: André Vicente Milack", IDC_STATIC, 108, 8, 120, 8
-    LTEXT           "email: andrevicente.m@gmail.com", IDC_STATIC, 108, 16, 120, 8
+    LTEXT           "Use the arrows or WASD keys to move the head of the snake, the rest of its body will follow the head. Each food the snake gets increases its length. Hitting the borders or the snake body ends the game, except in the Pass Through Walls Mode, in which the snake will appear in the opposite side when tresspassing the border. Just hold on as long as you can.", IDC_STATIC, 8, 40, 224, 200
     
-    LTEXT           "Use the arrows or WASD keys to move the head of the snake, the rest of its body will follow the head. Each food the snake gets increases its length. Hitting the borders or the snake body ends the game, except in the Pass Through Walls Mode, in which the snake will appear in the opposite side when tresspassing the border. Hold on as long as you can, you'll have a little reward if you make it good enough.", IDC_STATIC, 8, 40, 224, 200
+    LTEXT           "Keyboard Commands:", IDC_STATIC, 8, 96, 224, 200
     
-    LTEXT           "Keyboard Commands:", IDC_STATIC, 8, 112, 224, 200
+    LTEXT           "Move Right:\t\tRight\tD", IDC_STATIC, 8, 112, 224, 200
+    LTEXT           "Move Up:\t\tUp\tW", IDC_STATIC, 8, 120, 224, 200
+    LTEXT           "Move Left:\t\tLeft\tA", IDC_STATIC, 8, 128, 224, 200
+    LTEXT           "Move Down:\t\tDown\tS", IDC_STATIC, 8, 136, 224, 200
     
-    LTEXT           "Move Right:\t\tRight\tD", IDC_STATIC, 8, 128, 224, 200
-    LTEXT           "Move Up:\t\tUp\tW", IDC_STATIC, 8, 136, 224, 200
-    LTEXT           "Move Left:\t\tLeft\tA", IDC_STATIC, 8, 144, 224, 200
-    LTEXT           "Move Down:\t\tDown\tS", IDC_STATIC, 8, 152, 224, 200
+    LTEXT           "Pause:\t\t\tP\tSpace\tPause Break", IDC_STATIC, 8, 152, 224, 200
+    LTEXT           "About:\t\t\tF1", IDC_STATIC, 8, 160, 224, 200
+    LTEXT           "New Game:\t\tF2\tCtrl + N", IDC_STATIC, 8, 168, 224, 200
+    LTEXT           "Preferences:\t\tF5", IDC_STATIC, 8, 176, 224, 200
     
-    LTEXT           "Pause:\t\t\tP\tSpace\tPause Break", IDC_STATIC, 8, 168, 224, 200
-    LTEXT           "About:\t\t\tF1", IDC_STATIC, 8, 176, 224, 200
-    LTEXT           "New Game:\t\tF2\tCtrl + N", IDC_STATIC, 8, 184, 224, 200
-    LTEXT           "Preferences:\t\tF5", IDC_STATIC, 8, 192, 224, 200
-    
-    DEFPUSHBUTTON   "OK", IDOK, 88, 216, 64, 16
+    DEFPUSHBUTTON   "OK", IDOK, 88, 196, 64, 16
 END
 
 //Preferences Dialog Box
@@ -95,13 +93,22 @@ BEGIN
     
     AUTOCHECKBOX     "Pass Through Walls Mode", IDC_PASS_THROUGH_WALLS, 104, 38, 96, 12
     
-    GROUPBOX         "Appearance", IDC_STATIC, 8, 64, 200, 48
+    GROUPBOX         "Colors", IDC_STATIC, 8, 64, 200, 48
     
-    LTEXT            "Field Color", IDC_STATIC, 16, 80, 48, 8
-    PUSHBUTTON       IDC_STATIC, 64, 78, 12, 12
+    LTEXT            "Field", IDC_STATIC, 16, 80, 48, 8
+    PUSHBUTTON       "", IDC_FIELD_COLOR, 64, 78, 12, 12, BS_BITMAP
     
-    LTEXT            "Food Color", IDC_STATIC, 104, 80, 48, 8
-    PUSHBUTTON       IDC_STATIC, 152, 78, 12, 12
+    LTEXT            "Food", IDC_STATIC, 90, 80, 48, 8
+    PUSHBUTTON       "", IDC_FOOD_COLOR, 138, 78, 12, 12, BS_BITMAP
+    
+    LTEXT            "Snake Head", IDC_STATIC, 16, 96, 48, 8
+    PUSHBUTTON       "", IDC_HEAD_COLOR, 64, 94, 12, 12, BS_BITMAP
+    
+    LTEXT            "Snake Body", IDC_STATIC, 90, 96, 48, 8
+    PUSHBUTTON       "", IDC_BODY_COLOR, 138, 94, 12, 12, BS_BITMAP
+    
+    LTEXT            "Grid", IDC_STATIC, 164, 88, 24, 8
+    PUSHBUTTON       "", IDC_GRID_COLOR, 188, 86, 12, 12, BS_BITMAP
     
     DEFPUSHBUTTON    "OK", IDOK, 42, 120, 64, 16
     PUSHBUTTON       "Cancel", IDCANCEL, 110, 120, 64, 16

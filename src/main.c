@@ -1,25 +1,29 @@
-/********************************************************************
-                            SNAKE GAME
-
-                    Programmer: André Vicente Milack
-                    Email: andrevicente.m@gmail.com
-********************************************************************/
+//*****************************************************************************
+//                            SNAKE GAME
+//
+//                    Programmer: AndrÃ© Vicente Milack
+//                    Email: andrevicente.m@gmail.com
+//*****************************************************************************
 
 #include <windows.h>
+#include <commdlg.h>
 #include <stdlib.h>
 #include <time.h>
 #include "resources.h"
 
-/********************************************************************
-                        DEFINES & MACROS
-********************************************************************/
+
+//*****************************************************************************
+//
+//                              DEFINES & MACROS
+//
+//*****************************************************************************
 
 #define FIELD_WIDTH                 21    //Max: 127
 #define FIELD_HEIGHT                15    //Max: 127
-#define BORDER_WIDTH                1
-#define BORDER_COLOR                RGB(0xFF, 0xFF, 0x00)
-#define EMPTY_BLOCK_COLOR           RGB(0x00, 0xC0, 0x00)
-#define FOOD_BLOCK_COLOR            RGB(0xC0, 0x00, 0x00)
+#define GRID_WIDTH                  1
+#define GRID_COLOR                  RGB(0xFF, 0xFF, 0x00)
+#define FIELD_COLOR                 RGB(0x00, 0xC0, 0x00)
+#define FOOD_COLOR                  RGB(0xC0, 0x00, 0x00)
 #define SNAKE_HEAD_COLOR            RGB(0x20, 0x20, 0x20)
 #define SNAKE_BODY_COLOR            RGB(0x40, 0x40, 0x40)
 #define SNAKE_SPEED                 15    //Blocks per second
@@ -29,15 +33,18 @@
 
 #define BLOCK_X(p)                  ((char) (p & 0x00FF))
 #define BLOCK_Y(p)                  ((char) ((p >> 8) & 0x00FF))
-#define BLOCK_POSITION(x, y)        ((WORD) ((x & 0x00FF) | ((y << 8) & 0xFF00)))
+#define BLOCK_POSITION(x, y)        ((WORD) (((x) & 0x00FF) | ((y) << 8 & 0xFF00)))
 #define BLOCK_BUFFER_POSITION(p)    ((int) BLOCK_Y(p) * fieldWidth + (int) BLOCK_X(p))
 #define OPPOSITE_DIRECTION(d)       ((SNAKE_DIRECTION) (((int) d + 2) & 3))
 #define IS_PERPENDICULAR(d1, d2)    ((BOOL) ((d1 ^ d2) & 0x01))
 #define IS_BLOCK_AVAILABLE(s)       ((BOOL) (~s & 0x02))
 
-/********************************************************************
-                            ENUMS & STRUCTS
-********************************************************************/
+
+//*****************************************************************************
+//
+//                              ENUMS & STRUCTS
+//
+//*****************************************************************************
 
 typedef enum _BLOCK_STATE
 {
@@ -77,50 +84,63 @@ typedef enum _SNAKE_STATE
 
 typedef struct _SNAKE_ELEMENT
 {
-    WORD blockPosition;
+    WORD         blockPosition;
     GLOBALHANDLE hNextElement;
 } SNAKE_ELEMENT;
 
 typedef struct _DIRECTION_COMMAND
 {
     SNAKE_DIRECTION direction;
-    GLOBALHANDLE hNextCommand;
+    GLOBALHANDLE    hNextCommand;
 } DIRECTION_COMMAND;
 
-/********************************************************************
-                        GLOBAL VARIABLES
-********************************************************************/
 
-UINT fieldWidth = FIELD_WIDTH;
-UINT fieldHeight = FIELD_HEIGHT;
-UINT snakeSpeed = SNAKE_SPEED;
+//*****************************************************************************
+//
+//                              GLOBAL VARIABLES
+//
+//*****************************************************************************
+
+UINT fieldWidth       = FIELD_WIDTH;
+UINT fieldHeight      = FIELD_HEIGHT;
+UINT snakeSpeed       = SNAKE_SPEED;
 BOOL passThroughWalls = PASS_THROUGH_WALLS;
 
-GLOBALHANDLE hFieldBuffer;
-GLOBALHANDLE hSnakeStack;
-GLOBALHANDLE hCommandsBeginning;
-GLOBALHANDLE hCommandsEnding;
+GLOBALHANDLE    hFieldBuffer;
+GLOBALHANDLE    hSnakeStack;
+GLOBALHANDLE    hCommandsBeginning;
+GLOBALHANDLE    hCommandsEnding;
 SNAKE_DIRECTION previousDirection;
-SNAKE_STATE snakeState;
-UINT emptyBlocks, snakeSize;
+SNAKE_STATE     snakeState;
+UINT            emptyBlocks;
+UINT            snakeSize;
 
-/********************************************************************
-                        SNAKE CORE FUNCTIONS
-********************************************************************/
+COLORREF gridColor      = GRID_COLOR;
+COLORREF fieldColor     = FIELD_COLOR;
+COLORREF foodColor      = FOOD_COLOR;
+COLORREF snakeHeadColor = SNAKE_HEAD_COLOR;
+COLORREF snakeBodyColor = SNAKE_BODY_COLOR;
+
+
+//*****************************************************************************
+//
+//                             SNAKE CORE FUNCTIONS
+//
+//*****************************************************************************
 
 GLOBALHANDLE CreateSnakeBlock(WORD BlockPosition, GLOBALHANDLE NextElement)
 {
-    GLOBALHANDLE hNewSnakeBlock;
-    SNAKE_ELEMENT *pNewSnakeBlock;
+    GLOBALHANDLE   hNewSnakeBlock;
+    SNAKE_ELEMENT* pNewSnakeBlock;
 
     hNewSnakeBlock = GlobalAlloc(GMEM_MOVEABLE, sizeof(SNAKE_ELEMENT));
     
     if (hNewSnakeBlock)
     {
-        pNewSnakeBlock = (SNAKE_ELEMENT *) GlobalLock(hNewSnakeBlock);
+        pNewSnakeBlock = (SNAKE_ELEMENT*) GlobalLock(hNewSnakeBlock);
 
         pNewSnakeBlock->blockPosition = BlockPosition;
-        pNewSnakeBlock->hNextElement = NextElement;
+        pNewSnakeBlock->hNextElement  = NextElement;
 
         GlobalUnlock(hNewSnakeBlock);
     }
@@ -130,18 +150,18 @@ GLOBALHANDLE CreateSnakeBlock(WORD BlockPosition, GLOBALHANDLE NextElement)
 
 void DestroySnakeStack(GLOBALHANDLE SnakeStack)
 {
-    GLOBALHANDLE hNextElement = SnakeStack;
-    GLOBALHANDLE hCurrentElement;
-    SNAKE_ELEMENT *pCurrentElement;
+    GLOBALHANDLE   hNextElement = SnakeStack;
+    GLOBALHANDLE   hCurrentElement;
+    SNAKE_ELEMENT* pCurrentElement;
 
     while (hNextElement)
     {
         hCurrentElement = hNextElement;
-        pCurrentElement = (SNAKE_ELEMENT *) GlobalLock(hCurrentElement);
+        pCurrentElement = (SNAKE_ELEMENT*) GlobalLock(hCurrentElement);
         hNextElement    = pCurrentElement->hNextElement;
         
-		GlobalUnlock(hCurrentElement);
-        GlobalFree(hCurrentElement);
+        GlobalUnlock(hCurrentElement);
+        GlobalFree  (hCurrentElement);
     }
 }
 
@@ -152,27 +172,19 @@ WORD NewPosition(WORD Position, char Steps, SNAKE_DIRECTION Direction)
     x = BLOCK_X(Position);
     y = BLOCK_Y(Position);
 
-    switch (Direction)
+    if (passThroughWalls) switch (Direction)
     {
-        case RIGHT:
-            if (passThroughWalls) x = (x + Steps) % fieldWidth;
-            else x += Steps;
-            break;
-
-        case UP:
-            if (passThroughWalls) y = (y + Steps) % fieldHeight;
-            else y += Steps;
-            break;
-
-        case LEFT:
-            if (passThroughWalls) x = (x + fieldWidth - Steps) % fieldWidth;
-            else x -= Steps;
-            break;
-
-        case DOWN:
-            if (passThroughWalls) y = (y + fieldHeight - Steps) % fieldHeight;
-            else y -= Steps;
-            break;
+        case RIGHT: x = (x               + Steps) % fieldWidth;  break;
+        case LEFT:  x = (x + fieldWidth  - Steps) % fieldWidth;  break;
+        case UP:    y = (y               + Steps) % fieldHeight; break;
+        case DOWN:  y = (y + fieldHeight - Steps) % fieldHeight; break;
+    }
+    else switch (Direction)
+    {
+        case RIGHT: x += Steps; break;
+        case LEFT:  x -= Steps; break;
+        case UP:    y += Steps; break;
+        case DOWN:  y -= Steps; break;
     }
 
     return BLOCK_POSITION(x, y);
@@ -190,9 +202,9 @@ BOOL IsInsideField(WORD Position)
 
 BLOCK_STATE GetFieldBlock(WORD Position)
 {
-    BYTE        *pFieldBuffer;
+    BYTE*       pFieldBuffer;
     BLOCK_STATE state;
-    BYTE        *pBlockByte;
+    BYTE*       pBlockByte;
     int         shift;
     int         bufferPosition = BLOCK_BUFFER_POSITION(Position);
 
@@ -207,9 +219,9 @@ BLOCK_STATE GetFieldBlock(WORD Position)
 
 void SetFieldBlock(WORD Position, BLOCK_STATE NewState)
 {
-    BYTE        *pFieldBuffer;
+    BYTE*       pFieldBuffer;
     BLOCK_STATE previousState;
-    BYTE        *pBlockByte;
+    BYTE*       pBlockByte;
     BYTE        mask;
     int         shift;
     int         bufferPosition = BLOCK_BUFFER_POSITION(Position);
@@ -232,30 +244,27 @@ void SetFieldBlock(WORD Position, BLOCK_STATE NewState)
 
 SNAKE_RESULT BuildSnakeStack()
 {
-    WORD            tailPosition, headPosition;
+    WORD            tailPosition;
+    WORD            headPosition;
     SNAKE_DIRECTION tailDirection = OPPOSITE_DIRECTION(INITIAL_DIRECTION);
     WORD            currentPosition;
     GLOBALHANDLE    hPreviousBlock;
     GLOBALHANDLE    hCurrentBlock;
-    SNAKE_ELEMENT   *pCurrentBlock;
-    int i;
+    SNAKE_ELEMENT*  pCurrentBlock;
+    int             i;
 
-    //Check if the snake has an appropriate size
+    // Check if the snake has an appropriate size
     if (INITIAL_SNAKE_SIZE == 0) return SR_BAD_SNAKE_SIZE;
     
-    //Calculate head position
+    // Calculate head position
     headPosition = BLOCK_POSITION(INITIAL_SNAKE_SIZE + (fieldWidth - INITIAL_SNAKE_SIZE) / 3 - 1, (fieldHeight - 1) / 2);
 
-    //Check if the snake's both head and tail are inside the field
-    if (!IsInsideField(headPosition))
-        return SR_BAD_INITIAL_POSITION;
+    // Check if the snake's both head and tail are inside the field
+    if (!IsInsideField(headPosition)) return SR_BAD_INITIAL_POSITION;
     
-    tailPosition = NewPosition(headPosition,
-                               INITIAL_SNAKE_SIZE - 1,
-                               tailDirection);
+    tailPosition = NewPosition(headPosition, INITIAL_SNAKE_SIZE - 1, tailDirection);
 
-    if (!IsInsideField(tailPosition))
-        return SR_BAD_INITIAL_POSITION;
+    if (!IsInsideField(tailPosition)) return SR_BAD_INITIAL_POSITION;
 
     //Create the head of the snake
     hCurrentBlock   = GlobalAlloc(GMEM_MOVEABLE, sizeof(SNAKE_ELEMENT));
@@ -263,10 +272,10 @@ SNAKE_RESULT BuildSnakeStack()
 
     if (!hCurrentBlock) return SR_MEMORY_ERROR;
 
-    pCurrentBlock                = (SNAKE_ELEMENT *) GlobalLock(hCurrentBlock);
+    pCurrentBlock                = (SNAKE_ELEMENT*) GlobalLock(hCurrentBlock);
     pCurrentBlock->blockPosition = headPosition;
     pCurrentBlock->hNextElement  = NULL;
-	
+    
     GlobalUnlock(hCurrentBlock);
 
     SetFieldBlock(headPosition, SNAKE_HEAD);
@@ -284,7 +293,7 @@ SNAKE_RESULT BuildSnakeStack()
             return SR_MEMORY_ERROR;
         }
 
-        pCurrentBlock                = (SNAKE_ELEMENT *) GlobalLock(hCurrentBlock);
+        pCurrentBlock                = (SNAKE_ELEMENT*) GlobalLock(hCurrentBlock);
         pCurrentBlock->blockPosition = currentPosition;
         pCurrentBlock->hNextElement  = hPreviousBlock;
         GlobalUnlock(hCurrentBlock);
@@ -300,14 +309,14 @@ SNAKE_RESULT BuildSnakeStack()
 void CreateNewFood()
 {
     BLOCK_STATE state;
-    BYTE        *pBlockByte;
+    BYTE*       pBlockByte;
     BYTE        mask;
-    int         fieldBytes = (fieldWidth * fieldHeight + 3) / 4;
-    int         foodIndex = rand() % emptyBlocks;
+    int         fieldBytes   = (fieldWidth * fieldHeight + 3) / 4;
+    int         foodIndex    = rand() % emptyBlocks;
     int         currentIndex = 0;
     int         i, j;
 
-    pBlockByte = (BYTE *) GlobalLock(hFieldBuffer);
+    pBlockByte = (BYTE*) GlobalLock(hFieldBuffer);
 
     //Sweep all the bytes of the field buffer
     for (i = 0; i < fieldBytes; i++)
@@ -318,20 +327,19 @@ void CreateNewFood()
             mask  = 0x03 << 2 * j;
             state = (BLOCK_STATE) ((*pBlockByte & mask) >> 2 * j);
 
-            if (state == EMPTY)
+            if (state != EMPTY) continue;
+
+            if (currentIndex == foodIndex)
             {
-                if (currentIndex == foodIndex)
-                {
-                    *pBlockByte &= ~mask;
-                    *pBlockByte |= (FOOD << 2 * j) & mask;
-                    emptyBlocks--;
+                *pBlockByte &= ~mask;
+                *pBlockByte |= (FOOD << 2 * j) & mask;
+                emptyBlocks--;
 
-                    i = fieldBytes;
-                    break;
-                }
-
-                currentIndex++;
+                i = fieldBytes; // Forces break of outer loop
+                break;
             }
+
+            currentIndex++;
         }
 
         pBlockByte++;
@@ -342,17 +350,17 @@ void CreateNewFood()
 
 SNAKE_RESULT ReceiveCommand(SNAKE_DIRECTION Direction)
 {
-    GLOBALHANDLE hNewCommand = NULL;
-    DIRECTION_COMMAND *pNewCommand;
-    DIRECTION_COMMAND *pPreviousCommand;
-    SNAKE_DIRECTION lastDirection;
+    GLOBALHANDLE       hNewCommand = NULL;
+    DIRECTION_COMMAND* pNewCommand;
+    DIRECTION_COMMAND* pPreviousCommand = NULL;
+    SNAKE_DIRECTION    lastDirection;
     
     if (snakeState != RUNNING) return SR_OK;
     
     if (hCommandsEnding == NULL) lastDirection = previousDirection;
     else
     {
-        pPreviousCommand = (DIRECTION_COMMAND *) GlobalLock(hCommandsEnding);
+        pPreviousCommand = (DIRECTION_COMMAND*) GlobalLock(hCommandsEnding);
         lastDirection    = pPreviousCommand->direction;
     }
     
@@ -363,17 +371,18 @@ SNAKE_RESULT ReceiveCommand(SNAKE_DIRECTION Direction)
         if (hNewCommand == NULL)
         {
             if (hCommandsEnding != NULL) GlobalUnlock(hCommandsEnding);
+
             return SR_MEMORY_ERROR;
         }
         
-        pNewCommand               = (DIRECTION_COMMAND *) GlobalLock(hNewCommand);
+        pNewCommand               = (DIRECTION_COMMAND*) GlobalLock(hNewCommand);
         pNewCommand->hNextCommand = NULL;
         pNewCommand->direction    = Direction;
         
-		GlobalUnlock(hNewCommand);
+        GlobalUnlock(hNewCommand);
     }
     
-    if (hCommandsEnding == NULL)
+    if (pPreviousCommand == NULL)
     {
         if (hNewCommand != NULL)
         {
@@ -397,18 +406,18 @@ SNAKE_RESULT ReceiveCommand(SNAKE_DIRECTION Direction)
 
 SNAKE_DIRECTION PickDirection()
 {
-    DIRECTION_COMMAND *pFirstCommand;
-    GLOBALHANDLE      hSecondCommand;
-    SNAKE_DIRECTION   ret;
+    DIRECTION_COMMAND* pFirstCommand;
+    GLOBALHANDLE       hSecondCommand;
+    SNAKE_DIRECTION    ret;
     
     if (hCommandsBeginning == NULL) return previousDirection;
     
-    pFirstCommand  = (DIRECTION_COMMAND *) GlobalLock(hCommandsBeginning);
+    pFirstCommand  = (DIRECTION_COMMAND*) GlobalLock(hCommandsBeginning);
     ret            = pFirstCommand->direction;
     hSecondCommand = pFirstCommand->hNextCommand;
-	
+    
     GlobalUnlock(hCommandsBeginning);
-    GlobalFree(hCommandsBeginning);
+    GlobalFree  (hCommandsBeginning);
     
     if (hSecondCommand == NULL)
     {
@@ -422,45 +431,50 @@ SNAKE_DIRECTION PickDirection()
 
 void DestroyCommandsList(GLOBALHANDLE CommandsList)
 {
-    GLOBALHANDLE      hNextCommand = CommandsList;
-    GLOBALHANDLE      hCurrentCommand;
-    DIRECTION_COMMAND *pCurrentCommand;
+    GLOBALHANDLE       hNextCommand = CommandsList;
+    GLOBALHANDLE       hCurrentCommand;
+    DIRECTION_COMMAND* pCurrentCommand;
 
     while (hNextCommand)
     {
         hCurrentCommand = hNextCommand;
-        pCurrentCommand = (DIRECTION_COMMAND *) GlobalLock(hCurrentCommand);
+        pCurrentCommand = (DIRECTION_COMMAND*) GlobalLock(hCurrentCommand);
         hNextCommand    = pCurrentCommand->hNextCommand;
         
-		GlobalUnlock(hCurrentCommand);
-        GlobalFree(hCurrentCommand);
+        GlobalUnlock(hCurrentCommand);
+        GlobalFree  (hCurrentCommand);
     }
 }
 
 SNAKE_RESULT MoveSnake()
 {
-    GLOBALHANDLE  hNextElement = hSnakeStack;
-    GLOBALHANDLE  hCurrentElement;
-    SNAKE_ELEMENT *pCurrentElement, *pNextElement;
-    WORD          nextPosition, tailPreviousPosition;
-    BLOCK_STATE   nextState;
-    BOOL          isInside, isAvailable, gotFood, isTail = TRUE;
+    GLOBALHANDLE   hNextElement = hSnakeStack;
+    GLOBALHANDLE   hCurrentElement;
+    SNAKE_ELEMENT* pCurrentElement;
+    SNAKE_ELEMENT* pNextElement;
+    WORD           nextPosition;
+    WORD           tailPreviousPosition;
+    BLOCK_STATE    nextState;
+    BOOL           isInside;
+    BOOL           isAvailable;
+    BOOL           gotFood;
+    BOOL           isTail = TRUE;
 
     while (hNextElement)
     {
         hCurrentElement = hNextElement;
-        pCurrentElement = (SNAKE_ELEMENT *) GlobalLock(hCurrentElement);
-		
+        pCurrentElement = (SNAKE_ELEMENT*) GlobalLock(hCurrentElement);
+        
         if (isTail) tailPreviousPosition = pCurrentElement->blockPosition;
-		
+        
         hNextElement = pCurrentElement->hNextElement;
     
         if (hNextElement)
         {
-            pNextElement = (SNAKE_ELEMENT *) GlobalLock(hNextElement);
-			
+            pNextElement = (SNAKE_ELEMENT*) GlobalLock(hNextElement);
+            
             if (isTail) SetFieldBlock(pCurrentElement->blockPosition, EMPTY);
-			
+            
             pCurrentElement->blockPosition = pNextElement->blockPosition;
             GlobalUnlock(hNextElement);
         }
@@ -472,7 +486,9 @@ SNAKE_RESULT MoveSnake()
             if (isTail) SetFieldBlock(pCurrentElement->blockPosition, EMPTY);
             else        SetFieldBlock(pCurrentElement->blockPosition, SNAKE_BODY);
             
-            if (isInside = IsInsideField(nextPosition))
+            isInside = IsInsideField(nextPosition);
+
+            if (isInside)
             {
                 nextState   = GetFieldBlock(nextPosition);
                 isAvailable = IS_BLOCK_AVAILABLE(nextState);
@@ -503,7 +519,7 @@ SNAKE_RESULT MoveSnake()
         }
 
         GlobalUnlock(hCurrentElement);
-		
+        
         if (isTail) isTail = FALSE;
     }
     
@@ -518,11 +534,11 @@ SNAKE_RESULT Initialize(BOOL EmptyField)
     if (fieldWidth <= 0 || fieldWidth > 127 || fieldHeight <= 0 || fieldHeight > 127)
         return SR_BAD_FIELD_SIZE;
     
-    if (snakeSpeed <= 0)
-        return SR_BAD_SNAKE_SPEED;
+    if (snakeSpeed <= 0) return SR_BAD_SNAKE_SPEED;
 
-    if (!(hFieldBuffer = GlobalAlloc(GHND, (fieldWidth * fieldHeight + 3) / 4)))
-        return SR_MEMORY_ERROR;
+    hFieldBuffer = GlobalAlloc(GHND, (fieldWidth * fieldHeight + 3) / 4);
+
+    if (!hFieldBuffer) return SR_MEMORY_ERROR;
 
     emptyBlocks = fieldWidth * fieldHeight;
     
@@ -536,30 +552,32 @@ SNAKE_RESULT Initialize(BOOL EmptyField)
         hSnakeStack = NULL;
         snakeState  = IDLE;
         snakeSize   = 0;
+
+        return SR_OK;
     }
+
+    result = BuildSnakeStack();
+
+    if (result)
+    {
+        GlobalFree(hFieldBuffer);
+        hFieldBuffer = NULL;
+        return result;
+    }
+
+    //Create first food block
+    if (emptyBlocks) CreateNewFood();
     else
     {
-        //Create snake
-        if (result = BuildSnakeStack())
-        {
-            GlobalFree(hFieldBuffer);
-            hFieldBuffer = NULL;
-            return result;
-        }
+        DestroySnakeStack(hSnakeStack);
+        hSnakeStack = NULL;
+        GlobalFree(hFieldBuffer);
+        hFieldBuffer = NULL;
 
-        //Create first food block
-        if (emptyBlocks) CreateNewFood();
-        else
-        {
-            DestroySnakeStack(hSnakeStack);
-            hSnakeStack = NULL;
-            GlobalFree(hFieldBuffer);
-            hFieldBuffer = NULL;
-            return SR_NO_SPACE_FOR_FOOD;
-        }
-        
-        snakeState = RUNNING;
+        return SR_NO_SPACE_FOR_FOOD;
     }
+
+    snakeState = RUNNING;
 
     return SR_OK;
 }
@@ -588,23 +606,25 @@ void EndingCleanUp()
 
 const LPCTSTR ResultToString(SNAKE_RESULT Result)
 {
-    const LPCTSTR strings[] =
+    switch (Result)
     {
-        /* SR_OK */                      TEXT("No error."),
-        /* SR_MEMORY_ERROR */            TEXT("An error occurred while allocating memory."),
-        /* SR_BAD_FIELD_SIZE */          TEXT("Field width and height must be between 1 and 127."),
-        /* SR_BAD_SNAKE_SIZE */          TEXT("Snake size must be greater than zero."),
-        /* SR_BAD_INITIAL_POSITION */    TEXT("Snake doesn't fit into the field."),
-        /* SR_BAD_SNAKE_SPEED */         TEXT("The speed of the snake must be a positive integer."),
-        /* SR_NO_SPACE_FOR_FOOD */       TEXT("There is no empty space for the food.")
-    };
-
-    return strings[(int) Result];
+        case SR_OK:                      return TEXT("No error.");
+        case SR_MEMORY_ERROR:            return TEXT("An error occurred while allocating memory.");
+        case SR_BAD_FIELD_SIZE:          return TEXT("Field width and height must be between 1 and 127.");
+        case SR_BAD_SNAKE_SIZE:          return TEXT("Snake size must be greater than zero.");
+        case SR_BAD_INITIAL_POSITION:    return TEXT("Snake doesn't fit into the field.");
+        case SR_BAD_SNAKE_SPEED:         return TEXT("The speed of the snake must be a positive integer.");
+        case SR_NO_SPACE_FOR_FOOD:       return TEXT("There is no empty space for the food.");
+        default:                         return TEXT("");
+    }
 }
 
-/********************************************************************
-                        RENDER FUNCTIONS
-********************************************************************/
+
+//*****************************************************************************
+//
+//                              RENDER FUNCTIONS
+//
+//*****************************************************************************
 
 RECT CalculateFieldRect(RECT ClientRect, TEXTMETRIC TextMetric)
 {
@@ -619,8 +639,8 @@ RECT CalculateFieldRect(RECT ClientRect, TEXTMETRIC TextMetric)
     
     clientWidth     = ClientRect.right - ClientRect.left;
     clientHeight    = ClientRect.bottom - ClientRect.top;
-    blockAreaWidth  = clientWidth  - (fieldWidth + 1) * BORDER_WIDTH;
-    blockAreaHeight = clientHeight - (fieldHeight + 1) * BORDER_WIDTH;
+    blockAreaWidth  = clientWidth  - (fieldWidth  + 1) * GRID_WIDTH;
+    blockAreaHeight = clientHeight - (fieldHeight + 1) * GRID_WIDTH;
     
     if (blockAreaWidth * fieldHeight >= blockAreaHeight * fieldWidth)
     //Block area is wider than the field
@@ -628,18 +648,17 @@ RECT CalculateFieldRect(RECT ClientRect, TEXTMETRIC TextMetric)
         fieldRect.top    = 0;
         fieldRect.bottom = clientHeight;
 
-        fieldDelta = blockAreaHeight * fieldWidth / fieldHeight + (fieldWidth + 1) * BORDER_WIDTH;
+        fieldDelta = blockAreaHeight * fieldWidth / fieldHeight + (fieldWidth + 1) * GRID_WIDTH;
 
         fieldRect.left  = (clientWidth - fieldDelta) / 2;
         fieldRect.right = fieldRect.left + fieldDelta;
     }
-    else
-    //Block area is higher than the field
+    else //Block area is higher than the field
     {
         fieldRect.left  = 0;
         fieldRect.right = clientWidth;
 
-        fieldDelta = blockAreaWidth * fieldHeight / fieldWidth + (fieldHeight + 1) * BORDER_WIDTH;
+        fieldDelta = blockAreaWidth * fieldHeight / fieldWidth + (fieldHeight + 1) * GRID_WIDTH;
 
         fieldRect.top    = (clientHeight - fieldDelta) / 2;
         fieldRect.bottom = fieldRect.top + fieldDelta;
@@ -653,7 +672,7 @@ void RenderSnake(HWND HWnd)
     HDC         hdcWindow, hdcMemory;
     HBITMAP     hbmMemory;
     RECT        clientRect, fieldRect, blockRect;
-    HBRUSH      borderBrush, blockBrush, foodBrush, headBrush, bodyBrush;
+    HBRUSH      gridBrush, blockBrush, foodBrush, headBrush, bodyBrush;
     HBRUSH      brushArray[4];
     BLOCK_STATE state;
     UINT        x, y, usableWidth, usableHeight, accumBorders;
@@ -666,8 +685,8 @@ void RenderSnake(HWND HWnd)
     GetTextMetrics(hdcWindow, &textMetric);
     GetClientRect(HWnd, &clientRect);
     fieldRect    = CalculateFieldRect(clientRect, textMetric);
-    usableWidth  = fieldRect.right - fieldRect.left - (fieldWidth + 1) * BORDER_WIDTH;
-    usableHeight = fieldRect.bottom - fieldRect.top - (fieldHeight + 1) * BORDER_WIDTH;
+    usableWidth  = fieldRect.right  - fieldRect.left - (fieldWidth  + 1) * GRID_WIDTH;
+    usableHeight = fieldRect.bottom - fieldRect.top  - (fieldHeight + 1) * GRID_WIDTH;
 
     //Create memory device context
     hdcMemory = CreateCompatibleDC(hdcWindow);
@@ -675,11 +694,11 @@ void RenderSnake(HWND HWnd)
     SelectObject(hdcMemory, hbmMemory);
 
     //Create brushes
-    borderBrush = CreateSolidBrush(BORDER_COLOR);
-    blockBrush  = CreateSolidBrush(EMPTY_BLOCK_COLOR);
-    foodBrush   = CreateSolidBrush(FOOD_BLOCK_COLOR);
-    headBrush   = CreateSolidBrush(SNAKE_HEAD_COLOR);
-    bodyBrush   = CreateSolidBrush(SNAKE_BODY_COLOR);
+    gridBrush  = CreateSolidBrush(gridColor);
+    blockBrush = CreateSolidBrush(fieldColor);
+    foodBrush  = CreateSolidBrush(foodColor);
+    headBrush  = CreateSolidBrush(snakeHeadColor);
+    bodyBrush  = CreateSolidBrush(snakeBodyColor);
 
     brushArray[0] = blockBrush;
     brushArray[1] = foodBrush;
@@ -688,12 +707,12 @@ void RenderSnake(HWND HWnd)
 
     //Paint borders and background
     FillRect(hdcMemory, &clientRect, (HBRUSH) GetStockObject(WHITE_BRUSH));
-    FillRect(hdcMemory, &fieldRect, borderBrush);
+    FillRect(hdcMemory, &fieldRect, gridBrush);
     
     //Draw bottom bar
     SelectObject(hdcMemory, GetStockObject(BLACK_PEN));
-    MoveToEx(hdcMemory, 0, clientRect.bottom - textMetric.tmHeight - 3, NULL);
-    LineTo(hdcMemory, clientRect.right, clientRect.bottom - textMetric.tmHeight - 3);
+    MoveToEx    (hdcMemory, 0, clientRect.bottom - textMetric.tmHeight - 3, NULL);
+    LineTo      (hdcMemory, clientRect.right, clientRect.bottom - textMetric.tmHeight - 3);
     
     SetTextAlign(hdcMemory, TA_LEFT);
     TextOut(hdcMemory, 2, clientRect.bottom - textMetric.tmHeight - 2, bottomText,
@@ -716,12 +735,12 @@ void RenderSnake(HWND HWnd)
             {
                 state = GetFieldBlock(BLOCK_POSITION(x, y));
 
-                accumBorders    = fieldRect.left + (x + 1) * BORDER_WIDTH;
-                blockRect.left  = accumBorders + x * usableWidth / fieldWidth;
+                accumBorders    = fieldRect.left + (x + 1) * GRID_WIDTH;
+                blockRect.left  = accumBorders +  x      * usableWidth / fieldWidth;
                 blockRect.right = accumBorders + (x + 1) * usableWidth / fieldWidth;
 
-                accumBorders     = fieldRect.bottom - (y + 1) * BORDER_WIDTH;
-                blockRect.top    = accumBorders - y * usableHeight / fieldHeight;
+                accumBorders     = fieldRect.bottom - (y + 1) * GRID_WIDTH;
+                blockRect.top    = accumBorders -  y      * usableHeight / fieldHeight;
                 blockRect.bottom = accumBorders - (y + 1) * usableHeight / fieldHeight;
 
                 FillRect(hdcMemory, &blockRect, brushArray[(int) state]);
@@ -734,57 +753,60 @@ void RenderSnake(HWND HWnd)
         {
             for (y = 0; y < fieldHeight; y++)
             {
-                accumBorders    = fieldRect.left + (x + 1) * BORDER_WIDTH;
-                blockRect.left  = accumBorders + x * usableWidth / fieldWidth;
+                accumBorders    = fieldRect.left + (x + 1) * GRID_WIDTH;
+                blockRect.left  = accumBorders +  x      * usableWidth / fieldWidth;
                 blockRect.right = accumBorders + (x + 1) * usableWidth / fieldWidth;
 
-                accumBorders     = fieldRect.bottom - (y + 1) * BORDER_WIDTH;
-                blockRect.top    = accumBorders - y * usableHeight / fieldHeight;
+                accumBorders     = fieldRect.bottom - (y + 1) * GRID_WIDTH;
+                blockRect.top    = accumBorders -  y      * usableHeight / fieldHeight;
                 blockRect.bottom = accumBorders - (y + 1) * usableHeight / fieldHeight;
 
                 FillRect(hdcMemory, &blockRect, blockBrush);
             }
         }
     }
-    
 
     BitBlt(hdcWindow, 0, 0, clientRect.right - clientRect.left, clientRect.bottom - clientRect.top,
            hdcMemory, 0, 0, SRCCOPY);
 
     //Clean-up and finish
-    DeleteObject(borderBrush);
+    DeleteObject(gridBrush);
     DeleteObject(blockBrush);
     DeleteObject(foodBrush);
     DeleteObject(headBrush);
     DeleteObject(bodyBrush);
 
     DeleteObject(hbmMemory);
-    DeleteDC(hdcMemory);
+    DeleteDC    (hdcMemory);
 
-    ReleaseDC(HWnd, hdcWindow);
+    ReleaseDC   (HWnd, hdcWindow);
     ValidateRect(HWnd, &clientRect);
 }
 
-/********************************************************************
-                        WINDOWS FUNCTIONS
-********************************************************************/
 
-LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
-BOOL    CALLBACK AboutDlgProc(HWND HWnd, UINT Message, WPARAM WParam, LPARAM LParam);
+//*****************************************************************************
+//
+//                        WINDOWS FUNCTIONS
+//
+//*****************************************************************************
+
+LRESULT CALLBACK WndProc           (HWND, UINT, WPARAM, LPARAM);
+BOOL    CALLBACK AboutDlgProc      (HWND HWnd, UINT Message, WPARAM WParam, LPARAM LParam);
 BOOL    CALLBACK PreferencesDlgProc(HWND HWnd, UINT Message, WPARAM WParam, LPARAM LParam);
-BOOL             HandleCommand(HINSTANCE HInstance, HWND HWnd, WPARAM WParam);
-BOOL             HandleKeyDown(HWND HWnd, WPARAM WParam);
-BOOL             ReadIntFromString(TCHAR *String, int *Result);
-void             CriticalEnd(HWND HWnd, SNAKE_RESULT Result);
+BOOL             HandleCommand     (HINSTANCE HInstance, HWND HWnd, WPARAM WParam);
+BOOL             HandleKeyDown     (HWND HWnd, WPARAM WParam);
+void             FillColorButton   (HWND HDlg, int id, COLORREF color);
+BOOL             ReadIntFromString (TCHAR *String, int *Result);
+void             CriticalEnd       (HWND HWnd, SNAKE_RESULT Result);
 
 int WINAPI WinMain(HINSTANCE HInstance, HINSTANCE HPrevInstance, PSTR CmdLine, int CmdShow)
 {
     static TCHAR appName[] = TEXT("Snake");
-	
-    HWND         hwnd;
-    MSG          msg;
-    WNDCLASSEX   wndclass;
-    HANDLE       hAccel;
+    
+    HWND       hwnd;
+    MSG        msg;
+    WNDCLASSEX wndclass;
+    HANDLE     hAccel;
     
     srand((UINT) time(NULL));
 
@@ -826,11 +848,10 @@ int WINAPI WinMain(HINSTANCE HInstance, HINSTANCE HPrevInstance, PSTR CmdLine, i
     
     while (GetMessage(&msg, NULL, 0, 0))
     {
-        if (!TranslateAccelerator(hwnd, hAccel, &msg))
-        {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
+        if (TranslateAccelerator(hwnd, hAccel, &msg)) continue;
+        
+        TranslateMessage(&msg);
+        DispatchMessage (&msg);
     }
     
     return msg.wParam;
@@ -915,21 +936,41 @@ BOOL CALLBACK PreferencesDlgProc(HWND HDlg, UINT Message, WPARAM WParam, LPARAM 
 {
     static HWND hwndParent, hwndWidth, hwndHeight, hwndSpeed, hwndPassWallThrough;
     
-	TCHAR        editText[10], messageText[80];
+    static COLORREF    customColors[16];
+    static CHOOSECOLOR chooseColor = { sizeof(CHOOSECOLOR), NULL, NULL, 0, customColors,
+                                       CC_RGBINIT | CC_FULLOPEN, 0, NULL, NULL};
+    
+    TCHAR        editText[10], messageText[80];
     UINT         editWidth, editHeight, editSpeed;
     BOOL         checkPassThroughWalls;
     BOOL         success;
     int          dialogResult;
     SNAKE_RESULT result;
+    COLORREF*    colorVar = NULL;
     
     switch (Message)
     {
         case WM_INITDIALOG:
+        {
             hwndParent          = GetParent(HDlg);
             hwndWidth           = GetDlgItem(HDlg, IDC_FIELD_WIDTH);
             hwndHeight          = GetDlgItem(HDlg, IDC_FIELD_HEIGHT);
             hwndSpeed           = GetDlgItem(HDlg, IDC_SPEED);
             hwndPassWallThrough = GetDlgItem(HDlg, IDC_PASS_THROUGH_WALLS);
+            
+            chooseColor.hwndOwner = HDlg;
+            
+            customColors[0] = fieldColor;
+            customColors[1] = foodColor;
+            customColors[2] = snakeHeadColor;
+            customColors[3] = snakeBodyColor;
+            customColors[4] = gridColor;
+            
+            FillColorButton(HDlg, IDC_FIELD_COLOR, fieldColor);
+            FillColorButton(HDlg, IDC_FOOD_COLOR,  foodColor);
+            FillColorButton(HDlg, IDC_HEAD_COLOR,  snakeHeadColor);
+            FillColorButton(HDlg, IDC_BODY_COLOR,  snakeBodyColor);
+            FillColorButton(HDlg, IDC_GRID_COLOR,  gridColor);
             
             wsprintf(editText, TEXT("%u"), fieldWidth);
             SetWindowText(hwndWidth, editText);
@@ -942,12 +983,15 @@ BOOL CALLBACK PreferencesDlgProc(HWND HDlg, UINT Message, WPARAM WParam, LPARAM 
             
             CheckDlgButton(HDlg, IDC_PASS_THROUGH_WALLS, passThroughWalls);
             return TRUE;
+        }
         
         case WM_COMMAND:
+        {
             if (LOWORD(WParam) == IDOK)
             {
                 GetWindowText(hwndWidth, editText, 10);
-                success = ReadIntFromString(editText, &editWidth);
+                success = ReadIntFromString(editText, (int*) &editWidth);
+                
                 if (!success || editWidth < INITIAL_SNAKE_SIZE || editWidth > 127)
                 {
                     wsprintf(messageText, TEXT("Invalid field width. Please, enter a numeric value between %u and 127."), INITIAL_SNAKE_SIZE);
@@ -956,7 +1000,8 @@ BOOL CALLBACK PreferencesDlgProc(HWND HDlg, UINT Message, WPARAM WParam, LPARAM 
                 }
                     
                 GetWindowText(hwndHeight, editText, 10);
-                success = ReadIntFromString(editText, &editHeight);
+                success = ReadIntFromString(editText, (int*) &editHeight);
+                
                 if (!success || editHeight <= 0 || editHeight > 127)
                 {
                     MessageBox(HDlg, TEXT("Invalid field height. Please, enter a numeric value between 1 and 127."), TEXT("Snake"), MB_OK | MB_ICONERROR);
@@ -969,7 +1014,8 @@ BOOL CALLBACK PreferencesDlgProc(HWND HDlg, UINT Message, WPARAM WParam, LPARAM 
                 }
                 
                 GetWindowText(hwndSpeed, editText, 10);
-                success = ReadIntFromString(editText, &editSpeed);
+                success = ReadIntFromString(editText, (int*) &editSpeed);
+                
                 if (!success || editSpeed <= 0)
                 {
                     MessageBox(HDlg, TEXT("Invalid speed. Please, enter a numeric positive value."), TEXT("Snake"), MB_OK | MB_ICONERROR);
@@ -978,32 +1024,64 @@ BOOL CALLBACK PreferencesDlgProc(HWND HDlg, UINT Message, WPARAM WParam, LPARAM 
                 
                 checkPassThroughWalls = (BOOL) SendMessage(hwndPassWallThrough, BM_GETCHECK, 0, 0);
                 
-                if (snakeState == PAUSED)
+                if (editWidth != fieldWidth || editHeight            != fieldHeight ||
+                    editSpeed != snakeSpeed || checkPassThroughWalls != passThroughWalls)
                 {
-                    dialogResult = MessageBox(HDlg, TEXT("Are you sure to finish the current game in order to change the preferences?"), TEXT("Snake"), MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING);
-                    if (dialogResult == IDYES) SetWindowText(hwndParent, TEXT("Snake"));
-                    else return TRUE;
-                }
-                
-                EndingCleanUp();
-                snakeState = IDLE;
-                
-                fieldWidth       = editWidth;
-                fieldHeight      = editHeight;
-                snakeSpeed       = editSpeed;
-                passThroughWalls = checkPassThroughWalls;
-                
-                if ((result = Initialize(TRUE)) != SR_OK)
-                {
-                    CriticalEnd(hwndParent, result);
-                    return TRUE;
+                    if (snakeState == PAUSED)
+                    {
+                        dialogResult = MessageBox(HDlg, TEXT("Changing these preferences requires the current game to be finished. Do you want to proceed?"), TEXT("Snake"), MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING);
+                        
+                        if (dialogResult == IDNO) return TRUE;
+                    }                    
+                    
+                    SetWindowText(hwndParent, TEXT("Snake"));
+                    
+                    EndingCleanUp();
+                    snakeState = IDLE;
+                    
+                    fieldWidth       = editWidth;
+                    fieldHeight      = editHeight;
+                    snakeSpeed       = editSpeed;
+                    passThroughWalls = checkPassThroughWalls;
+                    
+                    result = Initialize(TRUE);
+                                    
+                    if (result != SR_OK)
+                    {
+                        CriticalEnd(hwndParent, result);
+                        return TRUE;
+                    }
                 }
                 
                 InvalidateRect(hwndParent, NULL, FALSE);
                 EndDialog(HDlg, 0);
             }
             else if (LOWORD(WParam) == IDCANCEL) EndDialog(HDlg, 0);
+            else if (LOWORD(WParam) == IDC_FIELD_COLOR || LOWORD(WParam) == IDC_FOOD_COLOR ||
+                     LOWORD(WParam) == IDC_HEAD_COLOR  || LOWORD(WParam) == IDC_BODY_COLOR ||
+                     LOWORD(WParam) == IDC_GRID_COLOR)
+            {
+                switch(LOWORD(WParam))
+                {
+                    case IDC_FIELD_COLOR: colorVar = &fieldColor;     break;
+                    case IDC_FOOD_COLOR:  colorVar = &foodColor;      break;
+                    case IDC_HEAD_COLOR:  colorVar = &snakeHeadColor; break;
+                    case IDC_BODY_COLOR:  colorVar = &snakeBodyColor; break;
+                    case IDC_GRID_COLOR:  colorVar = &gridColor;      break;
+                }
+                
+                chooseColor.rgbResult = *colorVar;
+                
+                if (ChooseColor(&chooseColor))
+                {
+                    *colorVar = chooseColor.rgbResult;
+                    FillColorButton(HDlg, LOWORD(WParam), chooseColor.rgbResult);
+                    InvalidateRect(hwndParent, NULL, FALSE);
+                }
+            }
+            
             return TRUE;
+        }
         
         case WM_CLOSE:
             EndDialog(HDlg, 0);
@@ -1021,6 +1099,7 @@ BOOL HandleCommand(HINSTANCE HInstance, HWND HWnd, WPARAM WParam)
     switch (LOWORD(WParam))
     {
         case IDM_FILE_NEW:
+        {
             if (snakeState == RUNNING || snakeState == PAUSED)
             {
                 if (snakeState == RUNNING)
@@ -1029,17 +1108,25 @@ BOOL HandleCommand(HINSTANCE HInstance, HWND HWnd, WPARAM WParam)
                     snakeState = PAUSED;
                     SetWindowText(HWnd, TEXT("Snake (Paused)"));
                 }
+                
                 dialogResult = MessageBox(HWnd, TEXT("Are you sure to finish the current game and start a new one?"), TEXT("Snake"), MB_YESNO | MB_DEFBUTTON2 | MB_ICONWARNING);
+                
                 if (dialogResult == IDNO) return TRUE;
             }
+            
             EndingCleanUp();
-            if ((result = Initialize(FALSE)) == SR_OK)
+            
+            result = Initialize(FALSE);
+            
+            if (result == SR_OK)
             {
                 SetTimer(HWnd, 1, 1000 / snakeSpeed, NULL);
                 InvalidateRect(HWnd, NULL, FALSE);
             }
             else CriticalEnd(HWnd, result);
+            
             return TRUE;
+        }
             
         case IDM_FILE_EXIT:
             PostQuitMessage(0);
@@ -1052,6 +1139,7 @@ BOOL HandleCommand(HINSTANCE HInstance, HWND HWnd, WPARAM WParam)
                 snakeState = PAUSED;
                 SetWindowText(HWnd, TEXT("Snake (Paused)"));
             }
+            
             DialogBox(HInstance, MAKEINTRESOURCE(IDD_PREFERENCES), HWnd, PreferencesDlgProc);
             return TRUE;
             
@@ -1062,6 +1150,7 @@ BOOL HandleCommand(HINSTANCE HInstance, HWND HWnd, WPARAM WParam)
                 snakeState = PAUSED;
                 SetWindowText(HWnd, TEXT("Snake (Paused)"));
             }
+            
             DialogBox(HInstance, MAKEINTRESOURCE(IDD_ABOUTBOX), HWnd, AboutDlgProc);
             return TRUE;
             
@@ -1099,6 +1188,7 @@ BOOL HandleKeyDown(HWND HWnd, WPARAM WParam)
         case 'P':
         case VK_SPACE:
         case VK_PAUSE:
+        {
             if (snakeState == RUNNING)
             {
                 KillTimer(HWnd, 1);
@@ -1111,21 +1201,54 @@ BOOL HandleKeyDown(HWND HWnd, WPARAM WParam)
                 snakeState = RUNNING;
                 SetWindowText(HWnd, TEXT("Snake"));
             }
+            
             return TRUE;
+        }
         
         default:
             return FALSE;
     }
 }
 
+void FillColorButton(HWND HDlg, int id, COLORREF color)
+{
+    HWND    hButton = GetDlgItem(HDlg, id);
+    RECT    btnClient;
+    HDC     btnDC;
+    HDC     memDC;
+    HBITMAP bitmap;
+    HBITMAP prevBitmap;
+    HBRUSH  brush;
+    
+    GetClientRect(hButton, &btnClient);
+    
+    btnDC  = GetDC                 (HDlg);
+    memDC  = CreateCompatibleDC    (btnDC);
+    bitmap = CreateCompatibleBitmap(btnDC, btnClient.right, btnClient.bottom);
+    brush  = CreateSolidBrush      (color);
+    
+    SelectObject(memDC, bitmap);
+    SelectObject(memDC, GetStockObject(NULL_PEN));
+    SelectObject(memDC, brush);
+    
+    Rectangle(memDC, 0, 0, btnClient.right, btnClient.bottom);
+    
+    DeleteObject(brush);
+    DeleteObject(memDC);
+    
+    prevBitmap = (HBITMAP) SendDlgItemMessage(HDlg, id, BM_SETIMAGE, IMAGE_BITMAP, (LPARAM) bitmap);
+    
+    if (prevBitmap != NULL) DeleteObject(prevBitmap);
+}
+
 BOOL ReadIntFromString(TCHAR *String, int *Result)
 {
-    int  result   = 0;
-    int  i        = 0;
-    BOOL negative = FALSE;
+    int   result   = 0;
+    int   i        = 0;
+    BOOL  negative = FALSE;
     TCHAR c;
     
-    if (String[i] == '\0') return FALSE;
+    if      (String[i] == '\0') return FALSE;
     else if (String[i] == '-')
     {
         negative = TRUE;
@@ -1143,6 +1266,7 @@ BOOL ReadIntFromString(TCHAR *String, int *Result)
     }
     
     if (negative) result *= -1;
+    
     *Result = result;
     
     return TRUE;

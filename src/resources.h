@@ -24,3 +24,8 @@
 #define IDC_FIELD_HEIGHT        401
 #define IDC_SPEED               402
 #define IDC_PASS_THROUGH_WALLS  403
+#define IDC_FIELD_COLOR         404
+#define IDC_FOOD_COLOR          405
+#define IDC_HEAD_COLOR          406
+#define IDC_BODY_COLOR          407
+#define IDC_GRID_COLOR          408
