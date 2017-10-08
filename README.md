@@ -1,7 +1,9 @@
 # Snake
 Snake, the classic game found on old Nokia cell phones. Move the snake across the field collecting food to make the snake grow (no pun intended). Avoid hitting the walls or the own body of the snake to keep in the game. This project is a recreation in old-fashioned Windows style, using the Win32 API.
 
-![ScreenShot](screenshot.png)
+<p align="center">
+  <img src="screenshot.png">
+</p>
 
 # Build
 
