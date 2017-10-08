@@ -1098,7 +1098,7 @@ BOOL HandleCommand(HINSTANCE HInstance, HWND HWnd, WPARAM WParam)
     
     switch (LOWORD(WParam))
     {
-        case IDM_FILE_NEW:
+        case IDM_GAME_NEW:
         {
             if (snakeState == RUNNING || snakeState == PAUSED)
             {
@@ -1128,11 +1128,11 @@ BOOL HandleCommand(HINSTANCE HInstance, HWND HWnd, WPARAM WParam)
             return TRUE;
         }
             
-        case IDM_FILE_EXIT:
+        case IDM_GAME_EXIT:
             PostQuitMessage(0);
             return TRUE;
             
-        case IDM_FILE_PREFERENCES:
+        case IDM_GAME_PREFERENCES:
             if (snakeState == RUNNING)
             {
                 KillTimer(HWnd, 1);
@@ -1214,7 +1214,7 @@ void FillColorButton(HWND HDlg, int id, COLORREF color)
 {
     HWND    hButton = GetDlgItem(HDlg, id);
     RECT    btnClient;
-    HDC     btnDC;
+    HDC     dlgDC;
     HDC     memDC;
     HBITMAP bitmap;
     HBITMAP prevBitmap;
@@ -1222,10 +1222,12 @@ void FillColorButton(HWND HDlg, int id, COLORREF color)
     
     GetClientRect(hButton, &btnClient);
     
-    btnDC  = GetDC                 (HDlg);
-    memDC  = CreateCompatibleDC    (btnDC);
-    bitmap = CreateCompatibleBitmap(btnDC, btnClient.right, btnClient.bottom);
+    dlgDC  = GetDC                 (HDlg);
+    memDC  = CreateCompatibleDC    (dlgDC);
+    bitmap = CreateCompatibleBitmap(dlgDC, btnClient.right, btnClient.bottom);
     brush  = CreateSolidBrush      (color);
+    
+    ReleaseDC(HDlg, dlgDC);
     
     SelectObject(memDC, bitmap);
     SelectObject(memDC, GetStockObject(NULL_PEN));

@@ -10,12 +10,12 @@ IDI_ICON16    ICON    DISCARDABLE        "icons\\snake16.ico"
 //Menu
 IDM_MENU MENU DISCARDABLE
 BEGIN
-    POPUP "&File"
+    POPUP "&Game"
     BEGIN
-        MENUITEM "&New Game\tF2",       IDM_FILE_NEW
-        MENUITEM "&Preferences\tF5",    IDM_FILE_PREFERENCES
+        MENUITEM "&New\tF2",            IDM_GAME_NEW
+        MENUITEM "&Preferences\tF5",    IDM_GAME_PREFERENCES
         MENUITEM SEPARATOR
-        MENUITEM "E&xit",               IDM_FILE_EXIT
+        MENUITEM "E&xit",               IDM_GAME_EXIT
     END
     
     MENUITEM "&About",                  IDM_ABOUT
@@ -25,9 +25,9 @@ END
 IDK_ACCELERATORS    ACCELERATORS    DISCARDABLE
 BEGIN
     VK_F1,    IDM_ABOUT,              VIRTKEY
-    VK_F2,    IDM_FILE_NEW,           VIRTKEY
-    VK_F5,    IDM_FILE_PREFERENCES,   VIRTKEY
-    "^N",     IDM_FILE_NEW,           ASCII
+    VK_F2,    IDM_GAME_NEW,           VIRTKEY
+    VK_F5,    IDM_GAME_PREFERENCES,   VIRTKEY
+    "^N",     IDM_GAME_NEW,           ASCII
 END
 
 //About Dialog Box

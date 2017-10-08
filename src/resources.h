@@ -6,9 +6,9 @@
 
 //Menu
 #define IDM_MENU                40001
-#define IDM_FILE_NEW            40002
-#define IDM_FILE_PREFERENCES    40003
-#define IDM_FILE_EXIT           40004
+#define IDM_GAME_NEW            40002
+#define IDM_GAME_PREFERENCES    40003
+#define IDM_GAME_EXIT           40004
 #define IDM_ABOUT               40005
 
 //Keyboard Accelerator
