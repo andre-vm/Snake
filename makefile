@@ -8,7 +8,7 @@ EXE := bin\Snake.exe
 DIRS := obj bin
 
 $(EXE): $(OBJS) $(DIRS)
-	gcc -mwindows -o "$@" $(OBJS) $(LIBS)
+	gcc -mwindows -s -o "$@" $(OBJS) $(LIBS)
 	
 $(DIRS):
 	-mkdir $@
