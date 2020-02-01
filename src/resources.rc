@@ -39,7 +39,7 @@ BEGIN
     
     LTEXT           "Snake", IDC_STATIC, 32, 8, 100, 8
     LTEXT           "Author: André Vicente Milack", IDC_STATIC, 32, 16, 120, 8
-    LTEXT           "github.com/Milack27/Snake", IDC_STATIC, 32, 24, 224, 8
+    LTEXT           "github.com/andre-vm/Snake", IDC_STATIC, 32, 24, 224, 8
     
     LTEXT           "Use the arrows or WASD keys to move the head of the snake, the rest of its body will follow the head. Each food the snake gets increases its length. Hitting the borders or the snake body ends the game, except in the Pass Through Walls Mode, in which the snake will appear in the opposite side when tresspassing the border. Just hold on as long as you can.", IDC_STATIC, 8, 40, 224, 200
     
